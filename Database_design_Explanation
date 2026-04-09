@@ -1,0 +1,17 @@
+Questions list: - 
+Nested Bundles:  Can a bundle contain another bundle? (e.g., a    "Gamer Pro Kit" containing a "Keyboard/Mouse Combo" bundle). My current schema supports it, but it adds complexity to the logic that calculates total availability.
+
+Cost Tracking: Do we need to track the "Purchase Price" from the supplier versus the "Selling Price"? This is critical if the system needs to calculate profit margins or inventory valuation (FIFO/LIFO).
+Decision : - 
+    When I was designing this schema, I tried to focus on three things: data integrity, performance for high-volume updates, and future-proofing the "bundle" logic. Here is the breakdown of why I made these specific choices:
+
+Instead of creating a separate table for "Bundles" and "Single Products," I treated everything as a product. This keeps the schema clean.
+The Benefit: By using a join table that references the products table twice, we can handle "nested bundles" (a kit inside another kit) without needing to change the database structure later.
+
+Optimization with Indexes
+I planned for the database to grow, so I focused on indexing the columns most likely to be used in WHERE clauses:
+Foreign Key Indexes: Most modern databases (like MySQL/PostgreSQL) index foreign keys automatically, but I ensured that lookups for "all products in Warehouse X" would be nearly instantaneous.
+Transaction Logging: The inventory_logs table uses a BIGINT for the log_id. Inventory systems can generate millions of rows of history very quickly, and a standard INT might eventually run out of numbers.
+
+Normalization vs. Performance
+I followed 3rd Normal Form (3NF) for the most part to reduce redundancy. For example, supplier contact info stays in the suppliers table and isn't repeated in the products table. This makes it easy to update a supplier's email address in one place without having to touch every single product record they provide.
