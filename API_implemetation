@@ -1,0 +1,33 @@
+from fastapi import FastAPI, HTTPException
+
+app = FastAPI()
+
+# Mocking a data fetch for the live demo
+@app.get("/api/companies/{company_id}/alerts/low-stock")
+async def get_low_stock_alerts(company_id: int):
+    # This logic assumes:
+    # 1. We check the warehouse_inventory table for stock <= threshold
+    # 2. We filter by company_id
+    # 3. We check inventory_logs for a 'sale' in the last 30 days
+    
+    # Example response based on requirements
+    return {
+        "alerts": [
+            {
+                "product_id": 501,
+                "product_name": "Pro Keyboard",
+                "sku": "KB-PRO-BLK",
+                "warehouse_id": 12,
+                "warehouse_name": "East Coast Hub",
+                "current_stock": 3,
+                "threshold": 15,
+                "days_until_stockout": 5,
+                "supplier": {
+                    "id": 88,
+                    "name": "TechParts Distribution",
+                    "contact_email": "orders@techparts.com"
+                }
+            }
+        ],
+        "total_alerts": 1
+    }
