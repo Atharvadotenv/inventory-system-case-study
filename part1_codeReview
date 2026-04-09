@@ -1,0 +1,70 @@
+Inventory Management System 
+Issue Identification : -
+
+API perform two Seperate Database Commits
+This Breaks Transactional Integrity
+Can ead to inconsistent data (like product created but inventory missing)
+db.session.add(product) 
+db.session.commit() here we have committed
+But while adding inventory like 
+db.session .add(inventory) inventory creation may fails
+So product exists in database but inventory may or may not exists
+
+
+ 2) Reasoning : -
+
+In production systems, operations that depend on each other must be atomic
+If one operation fails after another succeeds, the system enters an inconsistent state
+This violates ACID properties (Atomicity)
+3) 
+Solution : -
+Used db.session.flush() instead of commit
+  to get product ID without breaking transaction
+Wrapped logic in try-catch
+  to handle runtime/database errors safely
+Used single commit()
+ ensures atomic operation
+Added rollback()
+ prevents partial data persistence
+4) suggestions : -
+Input Validation 
+Error handling(try catch)
+Providing error codes
+
+correct code solution : - 
+
+ @app.route('/api/products', methods=['POST'])
+def create_product():
+    data = request.json
+
+    try:
+        # Create new product
+        product = Product(
+            name=data['name'],
+            sku=data['sku'],
+            price=data['price'],
+            warehouse_id=data['warehouse_id']
+        )
+        db.session.add(product)
+
+        # Flush to generate product.id without committing
+        db.session.flush()
+
+        # Create inventory entry
+        inventory = Inventory(
+            product_id=product.id,
+            warehouse_id=data['warehouse_id'],
+            quantity=data.get('initial_quantity', 0)
+        )
+        db.session.add(inventory)
+
+        # Commit both operations together
+        db.session.commit()
+
+        return {"message": "Product created", "product_id": product.id}, 201
+
+    except Exception as e:
+        # Rollback in case of any failure
+        db.session.rollback()
+        return {"error": "Failed to create product", "details": str(e)}, 500
+
